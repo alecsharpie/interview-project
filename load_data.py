@@ -1,3 +1,4 @@
+import json
 
 from dotenv import load_dotenv
 
@@ -18,4 +19,9 @@ df = raw_data['Year 2009-2010']
 processed_data_dict = process_sheet(df)
 
 for k, v in processed_data_dict.items():
-    print(k, ' : ', v.shape)
+    print('\n\n', k, ' : ', v.shape)
+    print(v.dtypes)
+
+# Open the JSON file and read its contents
+with open('table_schema.json', 'r') as f:
+    table_schema = json.load(f)
