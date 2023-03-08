@@ -27,3 +27,9 @@ InvoiceDate: Invice date and time. Numeric. The day and time when a transaction 
 UnitPrice: Unit price. Numeric. Product price per unit in sterling (Â£).
 CustomerID: Customer number. Nominal. A 5-digit integral number uniquely assigned to each customer.
 Country: Country name. Nominal. The name of the country where a customer resides.
+
+
+# Additional data
+
+Geolocation data is obtained from [Nominatim API](https://nominatim.org/)
+Weather data is obtained from [Open-Meteo API](https://open-meteo.com/)
