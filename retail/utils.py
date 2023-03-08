@@ -10,13 +10,13 @@ def join_uuid(df, column_name, new_column_name='id'):
 
     unique_items = df[column_name].unique()
 
-    invoice_id_key = pd.DataFrame({
-        new_column_name: [uuid.uuid4().int for i in range(len(unique_items))],
+    id_key = pd.DataFrame({
+        new_column_name: [uuid.uuid4() for _ in range(len(unique_items))],
         column_name:
         unique_items
     })
 
-    return df.merge(invoice_id_key, on=column_name)
+    return df.merge(id_key, on=column_name)
 
 
 
