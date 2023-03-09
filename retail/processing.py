@@ -21,6 +21,9 @@ def process_sheet(df):
         'country'
     ]
 
+    df['datetime'] = pd.to_datetime(df['datetime'])
+    df = df.sort_values('datetime', ascending=True)
+
     df['transaction_id'] = [uuid.uuid4() for _ in range(len(df))]
     df = join_uuid(df, 'datetime', 'date_id')
     df = join_uuid(df, 'country', 'country_id')
@@ -28,34 +31,21 @@ def process_sheet(df):
     str_cols = [
         'invoice_id',
         'product_id',
-        'customer_id',
         'description',
-        'country'
+        'customer_id',
+        'country',
+        'transaction_id',
+        'date_id',
+        'country_id'
     ]
 
     df['price'] = df['price'].astype(float)
     df['quantity'] = df['quantity'].astype(int)
     df[str_cols] = df[str_cols].astype(str)
-    df['datetime'] = pd.to_datetime(df['datetime'])
-
-    df = df.sort_values('datetime', ascending=True)
-
-    # Fact Table - Transactions
-
-    fact_transactions = df[[
-        'transaction_id',
-        'invoice_id',
-        'product_id',
-        'customer_id',
-        'date_id',
-        'quantity'
-    ]]
 
     # Invoices Table
 
-    invoices = df.groupby('invoice_id').agg({
-        'date_id': 'first'
-        }).reset_index()
+    invoices = df[['invoice_id']].drop_duplicates()
 
     invoices['cancelled'] = invoices['invoice_id'].str.startswith('C', na=False)
 
@@ -71,17 +61,13 @@ def process_sheet(df):
     dates['day'] = dates['datetime'].dt.day_name()
     dates['hour'] = dates['datetime'].dt.hour
 
+    dates['datetime'] = dates['datetime'].astype(str)
+
     # Products Table
 
     products = df.groupby('product_id').agg({
         'description': 'first',
         'price': 'first'
-        }).reset_index()
-
-    # Customer Table
-
-    customers = df.groupby('customer_id').agg({
-        'country_id': 'first'
         }).reset_index()
 
     # Countries Table
@@ -93,7 +79,7 @@ def process_sheet(df):
     uk_coords = (54.7023545, -3.2765753)
 
     country_stats = []
-
+    print("Getting country data, geocode & weather API...")
     for country in tqdm(countries['country'].unique()):
         lat, lon = get_latlon(country)
         avg_max_temp = get_weather(lat, lon)
@@ -105,11 +91,24 @@ def process_sheet(df):
         columns=['country', 'lat', 'lon', 'avg_max_temp', 'dist_from_uk']),
                                 on='country')
 
+    # Customer Table
+
+    customers = df.groupby('customer_id').agg({
+        'country_id': 'first'
+    }).reset_index()
+
+    # Fact Table - Transactions
+
+    fact_transactions = df[[
+        'transaction_id', 'invoice_id', 'product_id', 'customer_id', 'date_id',
+        'quantity'
+    ]]
+
     return {
-        'fact_transactions': fact_transactions,
         'invoices': invoices,
         'dates': dates,
         'products': products,
+        'countries': countries,
         'customers': customers,
-        'countries': countries
+        'fact_transactions': fact_transactions,
     }

@@ -1,0 +1,72 @@
+{
+    "invoices": {
+        "columns": [
+            { "name": "invoice_id", "type": "STRING", "mode": "REQUIRED" },
+            { "name": "cancelled", "type": "BOOLEAN", "mode": "NULLABLE" }
+        ],
+        "primary_key": "invoice_id",
+        "foreign_keys": []
+    },
+    "dates": {
+        "columns": [
+            { "name": "date_id", "type": "STRING", "mode": "REQUIRED" },
+            { "name": "datetime", "type": "DATETIME", "mode": "NULLABLE" },
+            { "name": "year", "type": "INTEGER", "mode": "NULLABLE" },
+            { "name": "quarter", "type": "INTEGER", "mode": "NULLABLE" },
+            { "name": "month", "type": "INTEGER", "mode": "NULLABLE" },
+            { "name": "day", "type": "STRING", "mode": "NULLABLE" },
+            { "name": "hour", "type": "INTEGER", "mode": "NULLABLE" }
+        ],
+        "primary_key": "date_id",
+        "foreign_keys": []
+    },
+    "products": {
+        "columns": [
+            { "name": "product_id", "type": "STRING", "mode": "REQUIRED" },
+            { "name": "description", "type": "STRING", "mode": "NULLABLE" },
+            { "name": "price", "type": "FLOAT", "mode": "NULLABLE" }
+        ],
+        "primary_key": "product_id",
+        "foreign_keys": []
+    },
+    "countries": {
+        "columns": [
+            { "name": "country_id", "type": "STRING", "mode": "REQUIRED" },
+            { "name": "country", "type": "STRING", "mode": "NULLABLE" },
+            { "name": "lat", "type": "FLOAT", "mode": "NULLABLE" },
+            { "name": "lon", "type": "FLOAT", "mode": "NULLABLE" },
+            { "name": "avg_max_temp", "type": "FLOAT", "mode": "NULLABLE" },
+            { "name": "dist_from_uk", "type": "FLOAT", "mode": "NULLABLE" }
+        ],
+        "primary_key": "country_id",
+        "foreign_keys": []
+    },
+    "customers": {
+        "columns": [
+            { "name": "customer_id", "type": "STRING", "mode": "REQUIRED" },
+            { "name": "country_id", "type": "STRING", "mode": "REQUIRED" }
+        ],
+        "primary_key": "customer_id",
+        "foreign_keys": [
+            { "column": "country_id", "references": "countries", "ref_column": "country_id" }
+        ]
+
+    },
+    "fact_transactions": {
+        "columns": [
+            { "name": "transaction_id", "type": "STRING", "mode": "REQUIRED" },
+            { "name": "invoice_id", "type": "STRING", "mode": "REQUIRED" },
+            { "name": "product_id", "type": "STRING", "mode": "REQUIRED" },
+            { "name": "customer_id", "type": "STRING", "mode": "REQUIRED" },
+            { "name": "date_id", "type": "STRING", "mode": "REQUIRED" },
+            { "name": "quantity", "type": "INTEGER", "mode": "REQUIRED" }
+        ],
+        "primary_key": "transaction_id",
+        "foreign_keys": [
+            { "column": "invoice_id", "references": "invoices", "ref_column": "invoice_id" },
+            { "column": "product_id", "references": "products", "ref_column": "product_id" },
+            { "column": "customer_id", "references": "customers", "ref_column": "customer_id" },
+            { "column": "date_id", "references": "dates", "ref_column": "date_id" }
+        ]
+    }
+}
