@@ -1,27 +1,51 @@
 import json
+from tqdm import tqdm
 
 from dotenv import load_dotenv
 
 import pandas as pd
+import numpy as np
 
 from retail.processing import process_sheet
+from retail.data import get_data
+from retail.bigquery import BigQuery
+
+from dotenv import load_dotenv
+import os
 
 load_dotenv()
 
-# Get Data
-DATA_URL = "https://archive.ics.uci.edu/ml/machine-learning-databases/00502/online_retail_II.xlsx"
+PROJECT_ID = os.getenv('PROJECT_ID')
+DATASET = "online_retail_uci_roller"
 
-raw_data = pd.read_excel(DATA_URL, sheet_name=None)
+raw_data = get_data()
+# df = raw_data['Year 2009-2010']
 
-df = raw_data['Year 2009-2010']
-
-# Process Data
-processed_data_dict = process_sheet(df)
-
-for k, v in processed_data_dict.items():
-    print('\n\n', k, ' : ', v.shape)
-    print(v.dtypes)
-
-# Open the JSON file and read its contents
 with open('table_schema.json', 'r') as f:
     table_schema = json.load(f)
+
+bq = BigQuery(PROJECT_ID, DATASET)
+
+for _key, sheet in raw_data.items():
+
+    proc_tables = process_sheet(sheet)
+
+    for name, schema in table_schema.items():
+        table = proc_tables[name]
+        print('\n', name, ' : ', table.shape)
+        print(('-----'))
+        print(table.dtypes)
+
+        if name == 'fact_transactions':
+            bq.create_table(name,
+                            schema,
+                            clustered_columns=['customer_id', 'product_id'])
+
+        else:
+            bq.create_table(name,
+                            schema)
+
+        chunk_size = 1000
+        for i in tqdm(range(0, table.shape[0], chunk_size)):
+            data_chunk = table.iloc[i:i + chunk_size].fillna(np.nan).replace([np.nan], [None])
+            bq.insert_data(name, data_chunk.to_dict('records'))

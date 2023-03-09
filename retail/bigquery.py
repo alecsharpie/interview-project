@@ -12,18 +12,13 @@ class BigQuery:
             f"{self.project_id}.{dataset.dataset_id}"
             for dataset in self.client.list_datasets()
         ]
-        print('Dataset list:')
-        print(self.dataset_list)
         if f"{self.project_id}.{self.dataset_id}" not in self.dataset_list:
             self.create_dataset()
 
         self.tables = [
             f"{table.project}.{table.dataset_id}.{table.table_id}"
             for table in self.client.list_tables(self.dataset_id)
-            ]
-        print('Table list:')
-        print(self.tables)
-
+        ]
 
     def create_dataset(self):
         """Create a new dataset in the specified project."""
